@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinGuard - Smart Expense Tracker</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.6s ease-out;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+
+  <!-- Flash Messages Script -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <script>
+    window.hasFlashMessages = true;
+    window.flashMessages = {{ messages | tojson | safe }};
+  </script>
+  {% endif %}
+  {% endwith %}
+
+  <script>
+    const showLoginModal = "{{ request.args.get('show_login') == 'true' }}";
+  </script>
+
+  <!-- Header -->
+  <header class="flex justify-between items-center px-6 py-4 shadow bg-white">
+    <div class="text-xl font-bold text-blue-600">FinGuard</div>
+    <div class="space-x-4">
+      <button id="openLoginBtn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">Login</button>
+      <button id="openSignupBtn" class="px-4 py-2 border border-blue-500 text-blue-500 rounded hover:bg-blue-50 transition">Get Started</button>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="text-center py-20 px-6 reveal">
+    <h1 class="text-4xl font-bold mb-4">Smarter Spending Starts with FinGuard</h1>
+    <p class="text-lg mb-8">Track, Analyze, and Optimize your expenses effortlessly.</p>
+    <img src="https://img.freepik.com/free-vector/personal-finance-concept-illustration_114360-7738.jpg" class="mx-auto w-full max-w-xl rounded-lg shadow-lg" alt="FinGuard Hero"/>
+  </section>
+
+  <!-- Features -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-8 px-10 py-20 bg-white reveal">
+    <div class="bg-gray-100 p-6 rounded shadow hover:shadow-lg transition">
+      <h3 class="text-xl font-semibold mb-2">💡 Smart Budgeting</h3>
+      <p>Get AI-based insights on where your money goes and how to optimize it.</p>
+    </div>
+    <div class="bg-gray-100 p-6 rounded shadow hover:shadow-lg transition">
+      <h3 class="text-xl font-semibold mb-2">🔐 Secure Vault</h3>
+      <p>Store receipts and bills securely with our encrypted storage.</p>
+    </div>
+    <div class="bg-gray-100 p-6 rounded shadow hover:shadow-lg transition">
+      <h3 class="text-xl font-semibold mb-2">⚠️ Real-Time Alerts</h3>
+      <p>Stay notified about unusual spendings and balance thresholds.</p>
+    </div>
+  </section>
+
+  <!-- Chart Section -->
+  <section class="bg-blue-50 py-20 px-10 reveal">
+    <h2 class="text-3xl font-bold text-center mb-10">Visualize Your Spending</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-lg font-semibold mb-4">Spending Breakdown (Pie)</h3>
+        <canvas id="pieChart"></canvas>
+      </div>
+      <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-lg font-semibold mb-4">Monthly Trends (Bar)</h3>
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- Voice Input Section -->
+  <section class="py-20 px-10 reveal">
+    <h2 class="text-3xl font-bold text-center mb-10">Voice Input Enabled</h2>
+    <div class="flex flex-col md:flex-row gap-10 items-center">
+      <img src="https://img.freepik.com/free-vector/speech-recognition-abstract-concept_335657-3092.jpg" alt="Voice Input" class="w-full md:w-1/2 rounded shadow" />
+      <p class="md:w-1/2 text-lg leading-relaxed">Just say "I spent 200 rupees on groceries" and FinGuard will update your tracker automatically. Experience the convenience of hands-free expense logging.</p>
+    </div>
+  </section>
+
+  <!-- Upload Bills -->
+  <section class="bg-white py-20 px-10 reveal">
+    <h2 class="text-3xl font-bold text-center mb-10">Upload Your Bills</h2>
+    <p class="text-center mb-6 text-lg">Upload multiple bills and let our AI scan and categorize them automatically.</p>
+    <div class="text-center">
+      <button id="uploadLoginBtn" class="inline-block px-6 py-3 bg-green-600 text-white text-lg font-semibold rounded hover:bg-green-700 hover:scale-105 transition transform duration-300">
+        Login to Upload
+      </button>
+    </div>
+  </section>
+
+  <!-- How it Works -->
+  <section class="bg-blue-100 py-20 px-10 reveal">
+    <h2 class="text-3xl font-bold text-center mb-10">How FinGuard Works</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded shadow">
+        <h3 class="font-semibold mb-2">1️⃣ Signup & Setup</h3>
+        <p>Create an account and connect your preferred financial data sources.</p>
+      </div>
+      <div class="bg-white p-6 rounded shadow">
+        <h3 class="font-semibold mb-2">2️⃣ Track & Upload</h3>
+        <p>Record expenses via voice or upload bills using our simple interface.</p>
+      </div>
+      <div class="bg-white p-6 rounded shadow">
+        <h3 class="font-semibold mb-2">3️⃣ Get Insights</h3>
+        <p>View charts, summaries and receive recommendations based on your behavior.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="text-center py-10 bg-gray-800 text-white">
+    <p class="mb-2">&copy; 2025 FinGuard. All rights reserved.</p>
+    <div class="space-x-4">
+      <a href="#" class="hover:underline">Privacy Policy</a>
+      <a href="#" class="hover:underline">Terms of Service</a>
+      <a href="#" class="hover:underline">Support</a>
+    </div>
+  </footer>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-96 relative">
+      <button id="closeLoginBtn" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl leading-none">&times;</button>
+      <h2 class="text-xl font-bold mb-4">Login to FinGuard</h2>
+      <div id="loginFlashMessages" class="mb-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="text-sm text-red-600">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+      </div>
+      <form id="loginForm" action="{{ url_for('auth.login') }}" method="POST">
+        <input type="text" name="email" placeholder="Email" required class="w-full mb-4 px-3 py-2 border rounded">
+        <input type="password" name="password" placeholder="Password" required class="w-full mb-2 px-3 py-2 border rounded">
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition mb-2">Login</button>
+      </form>
+      <div class="text-right">
+        <a href="{{ url_for('auth.forgot_password') }}" class="text-sm text-blue-600 hover:underline">Forgot Password?</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signup Modal -->
+  <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-96 relative">
+      <button id="closeSignupBtn" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl leading-none">&times;</button>
+      <h2 class="text-xl font-bold mb-4">Create Your FinGuard Account</h2>
+      <div id="signupFlashMessages" class="mb-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="text-sm text-red-600">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+      </div>
+      <form id="signupForm" method="POST" action="{{ url_for('auth.signup') }}">
+        <input type="text" name="name" placeholder="Full Name" required class="w-full mb-3 px-3 py-2 border rounded">
+        <input type="email" name="email" placeholder="Email Address" required class="w-full mb-3 px-3 py-2 border rounded">
+        <input type="text" name="phone" placeholder="Phone Number" required class="w-full mb-3 px-3 py-2 border rounded">
+        <input type="password" name="password" placeholder="Create Password" required class="w-full mb-4 px-3 py-2 border rounded">
+        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition">Sign Up</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init();
+
+    // Charts
+  const pieCtx = document.getElementById('pieChart').getContext('2d');
+  new Chart(pieCtx, {
+    type: 'pie',
+    data: {
+      labels: ['Food', 'Bills', 'Transport', 'Shopping', 'Others'],
+      datasets: [{
+        label: 'Expenses',
+        data: [25, 20, 15, 30, 10],
+        backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6c757d']
+      }]
+    }
+  });
+
+  const barCtx = document.getElementById('barChart').getContext('2d');
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      datasets: [{
+        label: 'Monthly Spend (INR)',
+        data: [5000, 4500, 5200, 6100, 5800, 6000],
+        backgroundColor: '#00bfff'
+      }]
+    }
+  });
+
+  // Reveal animation
+  const reveals = document.querySelectorAll('.reveal');
+  window.addEventListener('scroll', () => {
+    reveals.forEach((el) => {
+      if (el.getBoundingClientRect().top < window.innerHeight - 150) {
+        el.classList.add('visible');
+      }
+    });
+  });
+
+  // Modal logic
+  const loginBtn = document.getElementById("openLoginBtn");
+  const signupBtn = document.getElementById("openSignupBtn");
+  const loginModal = document.getElementById("loginModal");
+  const signupModal = document.getElementById("signupModal");
+  const closeLogin = document.getElementById("closeLoginBtn");
+  const closeSignup = document.getElementById("closeSignupBtn");
+
+  loginBtn.onclick = () => loginModal.classList.remove("hidden");
+  signupBtn.onclick = () => signupModal.classList.remove("hidden");
+  closeLogin.onclick = () => loginModal.classList.add("hidden");
+  closeSignup.onclick = () => signupModal.classList.add("hidden");
+
+  // ✅ Add this line to trigger login modal from "Login to Upload"
+  document.getElementById("uploadLoginBtn").onclick = () => loginModal.classList.remove("hidden");
+  </script>
+
+</body>
+</html>

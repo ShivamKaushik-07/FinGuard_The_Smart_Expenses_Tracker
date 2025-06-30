@@ -1,0 +1,428 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="px-6 py-12 max-w-4xl mx-auto text-gray-800">
+  <!-- Animated Title Section -->
+  <div class="text-center mb-10" data-aos="fade-down" data-aos-duration="800">
+    <h2 class="text-4xl font-bold text-blue-600 mb-4 transform transition-all duration-500 hover:scale-105">📤 Upload Bills</h2>
+    <p class="text-lg text-gray-600 max-w-2xl mx-auto">Choose how you want to upload your bills</p>
+  </div>
+  
+  <!-- Upload Form with Animation -->
+  <form method="POST" action="{{ url_for('main.upload') }}" enctype="multipart/form-data" id="upload-form"
+    class="bg-white p-8 rounded-lg shadow-lg border border-gray-200 mb-12 reveal" data-aos="fade-up" data-aos-delay="100">
+    
+    <!-- Error Messages -->
+    {% if result %}
+    <div class="mb-4 p-4 rounded-lg {% if '❌' in result %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+      {{ result }}
+    </div>
+    {% endif %}
+    
+    <!-- File Counter -->
+    <div class="mb-4 text-center">
+      <span id="file-counter" class="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 text-blue-700">
+        <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Ready to upload
+      </span>
+    </div>
+
+    <!-- Upload Options -->
+    <div class="grid md:grid-cols-2 gap-6 mb-6">
+      <!-- Traditional Upload -->
+      <div class="bg-white p-6 rounded-lg border-2 border-gray-200 hover:border-blue-400 transition-colors duration-300">
+        <div class="text-center mb-4">
+          <div class="bg-blue-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+            <svg class="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Choose Files</h3>
+          <p class="text-sm text-gray-500 mb-4">Select bills from your device</p>
+          <label class="relative cursor-pointer">
+            <input type="file" name="bills" multiple accept="image/png, image/jpeg"
+              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" id="file-input">
+            <span class="inline-flex items-center justify-center px-6 py-3 border border-blue-500 rounded-lg text-blue-500 bg-white hover:bg-blue-50 transition-colors duration-300">
+              <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Browse Files
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Drag and Drop -->
+      <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors duration-300 group" id="drop-zone">
+        <input type="file" name="bills" multiple accept="image/png, image/jpeg"
+          class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" id="drag-input">
+        <div class="flex flex-col items-center justify-center py-6" id="dropzone-content">
+          <div class="mb-4 text-blue-500 group-hover:text-blue-600 transition-colors duration-300">
+            <svg class="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <path d="M28 8H12a4 4 0 00-4 4v20m0 0v4a4 4 0 004 4h20a4 4 0 004-4V16a4 4 0 00-4-4h-4m-12 8v-8m0 0l-4 4m4-4l4 4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p class="text-lg font-medium text-gray-900 mb-2">Drag & Drop</p>
+          <p class="text-sm text-gray-500">Drop your bills here</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- File Type Info -->
+    <div class="flex justify-center gap-2 mb-6">
+      <span class="px-3 py-1.5 bg-gray-100 rounded-full text-sm text-gray-600 flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Accepted: JPG, PNG
+      </span>
+      <span class="px-3 py-1.5 bg-gray-100 rounded-full text-sm text-gray-600 flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Max: 5MB each
+      </span>
+    </div>
+
+    <!-- Selected Files List -->
+    <div id="image-preview" class="mt-4 space-y-3 hidden">
+      <!-- File cards will be added here -->
+    </div>
+
+    <!-- Upload Button -->
+    <div class="mt-6">
+      <button type="submit" id="submit-button" disabled
+        class="w-full bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+        <span class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          <span id="upload-button-text">Upload</span>
+        </span>
+      </button>
+    </div>
+  </form>
+
+  <!-- Tips Section with Animation -->
+  <section class="mb-12" data-aos="zoom-in" data-aos-delay="300">
+    <h3 class="text-2xl font-semibold text-center mb-6" data-aos="fade-up">✅ Tips for Best Results</h3>
+    <div class="grid md:grid-cols-2 gap-10">
+      <!-- Correct Example with Animation -->
+      <div class="text-center p-6 bg-green-50 rounded-lg shadow-md hover:shadow-lg transition-all duration-300" data-aos="fade-up" data-aos-delay="400">
+        <div class="relative overflow-hidden rounded-lg mb-4 group">
+          <img src="{{ url_for('static', filename='image1.png') }}" alt="Correct Bill Example"
+            class="w-full h-64 object-cover rounded-lg border-2 border-green-400 transition-all duration-500 group-hover:scale-105">
+          <div class="absolute inset-0 bg-green-500 bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+            <span class="text-green-700 font-bold bg-white px-3 py-1 rounded-full text-sm">Perfect Example</span>
+          </div>
+        </div>
+        <p class="text-green-700 font-medium">✔️ Correct: Well-lit, clear, no blur or fold</p>
+        <ul class="text-sm text-green-600 mt-3 list-disc list-inside">
+          <li>Good lighting (natural preferred)</li>
+          <li>Entire bill visible</li>
+          <li>Text is clearly readable</li>
+          <li>Flat, no folds or creases</li>
+        </ul>
+      </div>
+
+      <!-- Incorrect Example with Animation -->
+      <div class="text-center p-6 bg-red-50 rounded-lg shadow-md hover:shadow-lg transition-all duration-300" data-aos="fade-up" data-aos-delay="500">
+        <div class="relative overflow-hidden rounded-lg mb-4 group">
+          <img src="{{ url_for('static', filename='image2.png') }}" alt="Incorrect Bill Example"
+            class="w-full h-64 object-cover rounded-lg border-2 border-red-400 transition-all duration-500 group-hover:scale-105">
+          <div class="absolute inset-0 bg-red-500 bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+            <span class="text-red-700 font-bold bg-white px-3 py-1 rounded-full text-sm">Avoid This</span>
+          </div>
+        </div>
+        <p class="text-red-600 font-medium">❌ Incorrect: Crumpled, dark, folded or blurred</p>
+        <ul class="text-sm text-red-600 mt-3 list-disc list-inside">
+          <li>Avoid shadows or glare</li>
+          <li>Don't fold bills</li>
+          <li>Avoid blurry photos</li>
+          <li>Don't cover any part of the bill</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Extracted Results Section -->
+  {% if extracted_results %}
+  <div class="mt-8 space-y-6" data-aos="fade-up">
+    <h3 class="text-2xl font-bold mb-6">📄 Scanned Results</h3>
+    {% for filename, result_msg, text in extracted_results %}
+    <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+      <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h4 class="text-lg font-medium text-gray-900">{{ filename }}</h4>
+          <span class="px-3 py-1 rounded-full text-sm font-medium 
+            {% if '✅' in result_msg %}bg-green-100 text-green-800
+            {% elif '⚠️' in result_msg %}bg-yellow-100 text-yellow-800
+            {% else %}bg-red-100 text-red-800{% endif %}">
+            {{ result_msg }}
+          </span>
+        </div>
+      </div>
+      <div class="p-4">
+        <pre class="whitespace-pre-wrap text-sm text-gray-700 bg-gray-50 p-4 rounded-md overflow-x-auto">{{ text }}</pre>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  
+  <!-- Loading Animation -->
+  {% if loading %}
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-aos="fade-in">
+    <div class="bg-white p-8 rounded-lg shadow-xl text-center">
+      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mx-auto mb-4"></div>
+      <p class="text-xl font-medium text-gray-700">Processing your bills...</p>
+      <p class="text-gray-500 mt-2">Please wait while our AI analyzes the images</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Animation Scripts -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  AOS.init({
+    duration: 800,
+    easing: 'ease-in-out',
+    once: true,
+    offset: 50
+  });
+  
+  // File input handlers
+  const fileInput = document.getElementById('file-input');
+  const dragInput = document.getElementById('drag-input');
+  const dropZone = document.getElementById('drop-zone');
+  const uploadForm = document.getElementById('upload-form');
+  const submitButton = document.getElementById('submit-button');
+  const imagePreview = document.getElementById('image-preview');
+  const dropzoneContent = document.getElementById('dropzone-content');
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+  
+  let currentFiles = new Set(); // Track current valid files
+
+  // Handle file selection from both inputs
+  [fileInput, dragInput].forEach(input => {
+    if (input) {
+      input.addEventListener('change', function(e) {
+        validateAndAddFiles(e.target.files);
+      });
+    }
+  });
+
+  // Drag and drop handlers
+  if (dropZone) {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+      dropZone.classList.add('bg-blue-50');
+      dropZone.classList.add('border-blue-400');
+    }
+    
+    function unhighlight() {
+      dropZone.classList.remove('bg-blue-50');
+      dropZone.classList.remove('border-blue-400');
+    }
+    
+    dropZone.addEventListener('drop', function(e) {
+      const dt = e.dataTransfer;
+      validateAndAddFiles(dt.files);
+    });
+  }
+
+  function validateAndAddFiles(files) {
+    const errors = [];
+    
+    Array.from(files).forEach(file => {
+      // Check file type
+      if (!file.type.match('image/(jpeg|png)')) {
+        errors.push(`${file.name} is not a valid image file (JPG/PNG only)`);
+        return;
+      }
+      
+      // Check file size
+      if (file.size > MAX_FILE_SIZE) {
+        errors.push(`${file.name} exceeds 5MB size limit`);
+        return;
+      }
+      
+      // Add to currentFiles
+      currentFiles.add(file);
+    });
+    
+    // Update UI
+    updateFileDisplay();
+    
+    // Show errors if any
+    const existingErrorDiv = document.getElementById('upload-errors');
+    if (existingErrorDiv) {
+      existingErrorDiv.remove();
+    }
+    
+    if (errors.length > 0) {
+      const errorDiv = document.createElement('div');
+      errorDiv.id = 'upload-errors';
+      errorDiv.className = 'mt-3 p-4 rounded-lg bg-red-50 text-red-700';
+      errorDiv.innerHTML = `
+        <div class="flex items-center mb-2">
+          <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="font-medium">Please fix the following issues:</span>
+        </div>
+        <ul class="list-disc list-inside space-y-1">
+          ${errors.map(err => `<li>${err}</li>`).join('')}
+        </ul>
+      `;
+      uploadForm.insertBefore(errorDiv, imagePreview);
+    }
+  }
+
+  function updateFileCounter() {
+    const counter = document.getElementById('file-counter');
+    const buttonText = document.getElementById('upload-button-text');
+    const fileCount = currentFiles.size;
+    
+    if (fileCount === 0) {
+      counter.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Ready to upload
+      `;
+      buttonText.textContent = 'Upload';
+    } else {
+      counter.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        ${fileCount} ${fileCount === 1 ? 'bill' : 'bills'} selected
+      `;
+      buttonText.textContent = 'Upload';
+    }
+  }
+
+  function createImagePreview(file) {
+    const previewContainer = document.createElement('div');
+    previewContainer.className = 'relative bg-white rounded-lg shadow-md border border-gray-200 p-4 hover:shadow-lg transition-shadow duration-200';
+    
+    const fileSize = file.size < 1024 * 1024 
+      ? `${(file.size / 1024).toFixed(1)} KB`
+      : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+    
+    const fileDate = new Date().toLocaleDateString();
+    
+    previewContainer.innerHTML = `
+      <div class="flex items-start justify-between">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center space-x-2">
+            <div class="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+              <svg class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div class="truncate">
+              <p class="text-sm font-medium text-gray-900 truncate" title="${file.name}">${file.name}</p>
+              <p class="text-xs text-gray-500">${fileSize} • ${file.type.split('/')[1].toUpperCase()}</p>
+            </div>
+          </div>
+        </div>
+        <button type="button" 
+          class="ml-4 bg-red-50 text-red-500 hover:bg-red-100 p-2 rounded-lg transition-colors duration-200 flex items-center"
+          onclick="removeFile('${file.name}')"
+          title="Remove file">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    `;
+    
+    return previewContainer;
+  }
+
+  function updateFileDisplay() {
+    imagePreview.innerHTML = '';
+    
+    if (currentFiles.size > 0) {
+      imagePreview.classList.remove('hidden');
+      currentFiles.forEach(file => {
+        imagePreview.appendChild(createImagePreview(file));
+      });
+      submitButton.disabled = false;
+    } else {
+      imagePreview.classList.add('hidden');
+      submitButton.disabled = true;
+    }
+    
+    updateFileCounter();
+  }
+
+  function removeFile(fileName) {
+    currentFiles.forEach(file => {
+      if (file.name === fileName) {
+        currentFiles.delete(file);
+      }
+    });
+    updateFileDisplay();
+  }
+
+  // Form submission handling
+  if (uploadForm) {
+    uploadForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      if (currentFiles.size === 0) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'mb-4 p-4 rounded-lg bg-red-50 text-red-700';
+        errorDiv.innerHTML = 'Please select a bill to upload.';
+        this.insertBefore(errorDiv, this.firstChild);
+        setTimeout(() => errorDiv.remove(), 5000);
+        return;
+      }
+      
+      // Create FormData and add files
+      const formData = new FormData();
+      currentFiles.forEach(file => {
+        formData.append('bills', file);
+      });
+      
+      // Update button state
+      submitButton.disabled = true;
+      submitButton.innerHTML = `
+        <span class="flex items-center justify-center">
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Processing...
+        </span>
+      `;
+      
+      this.submit();
+    });
+  }
+  
+  // Make removeFile available globally
+  window.removeFile = removeFile;
+</script>
+{% endblock %}   

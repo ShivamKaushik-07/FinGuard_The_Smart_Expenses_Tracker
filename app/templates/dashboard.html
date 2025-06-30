@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- ✅ Download Button & Dropdown -->
+<div style="position: relative; display: inline-block;">
+  <button id="downloadBtn" class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 focus:outline-none">
+    Download ▼
+  </button>
+  <div id="downloadDropdown" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #ccc; min-width: 200px; z-index: 9999;">
+    <a href="#" onclick="generateThenDownload('csv', 'current')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📁 CSV – Current Month</a>
+    <a href="#" onclick="generateThenDownload('pdf', 'current')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">🧾 PDF – Current Month</a>
+    <a href="#" onclick="generateThenDownload('csv', 'last')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📁 CSV – Last Month</a>
+    <a href="#" onclick="generateThenDownload('pdf', 'last')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">🧾 PDF – Last Month</a>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const btn = document.getElementById("downloadBtn");
+    const dropdown = document.getElementById("downloadDropdown");
+
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    });
+
+    document.addEventListener("click", function () {
+      dropdown.style.display = 'none';
+    });
+
+    dropdown.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+  });
+
+  function generateThenDownload(fileType, monthType) {
+    const downloadBtn = document.getElementById('downloadBtn');
+    const originalText = downloadBtn.textContent;
+    downloadBtn.textContent = 'Generating...';
+    downloadBtn.disabled = true;
+
+    fetch('/generate_backup', {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        setTimeout(() => {
+          window.location.href = `/download_backup/${fileType}/${monthType}`;
+          downloadBtn.textContent = originalText;
+          downloadBtn.disabled = false;
+        }, 1000);
+      } else {
+        throw new Error(data.message || 'Failed to generate backup');
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      alert('Failed to generate backup: ' + err.message);
+      downloadBtn.textContent = originalText;
+      downloadBtn.disabled = false;
+    });
+  }
+</script>
+
+<!-- ✅ Main Dashboard Section -->
+<section class="max-w-7xl mx-auto px-4 py-8 space-y-8" data-aos="fade-up">
+  <h2 class="text-4xl font-bold text-indigo-700 dark:text-indigo-300 text-center mb-6">📊 Expense Dashboard</h2>
+
+  <!-- 💰 Budget Summary -->
+  <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 text-white text-center">
+    <h3 class="text-xl font-semibold mb-2">Total Expenses</h3>
+    <div class="text-4xl font-bold mb-2">₹{{ total_expenses }}</div>
+    Monthly Budget: <span id="monthlyBudget">₹{{ current_budget }}</span><br>
+    Limit: <span id="monthlyLimit">₹{{ current_limit }}</span>
+    <div class="w-full bg-indigo-200 rounded-full h-4 mt-3 mb-2 overflow-hidden">
+      <div id="budgetProgress" class="bg-green-500 h-4 rounded-full" style="width: 0%"></div>
+    </div>
+    <div class="text-sm">
+      <span id="budgetStatus" class="font-semibold">Set your monthly budget to start tracking</span>
+    </div>
+    <form action="{{ url_for('auth.set_budget') }}" method="POST" class="mt-3 space-y-2">
+      <input type="number" name="budget" placeholder="Enter monthly budget" class="text-black p-2 rounded w-full"
+        required>
+      <input type="number" name="limit" placeholder="Enter spending limit for alerts"
+        class="text-black p-2 rounded w-full" required>
+      <button type="submit" class="bg-white text-indigo-600 px-4 py-2 rounded-md hover:bg-indigo-100 transition">
+        Set Budget & Limit
+      </button>
+    </form>
+  </div>
+  
+  <!--  Expense Table -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden mt-6">
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <thead class="bg-gray-100 dark:bg-gray-700">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Date</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Description</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300">GST Number</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Source</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exp in expenses %}
+        <tr class="bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">
+          <td class="px-6 py-4">{{ exp.date.strftime('%Y-%m-%d') }}</td>
+          <td class="px-6 py-4">{{ exp.description }}</td>
+          <td class="px-6 py-4">{{ exp.gst_number if exp.gst_number else 'N/A' }}</td>
+          <td class="px-6 py-4">{{ exp.source }}</td>
+          <td class="px-6 py-4">₹{{ exp.amount }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 📈 Chart Buttons -->
+  <div class="mt-10 flex justify-center gap-4">
+    <button onclick="showChart('daily')"
+      class="chart-btn bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Daily</button>
+    <button onclick="showChart('monthly')"
+      class="chart-btn bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Monthly</button>
+    <button onclick="showChart('yearly')"
+      class="chart-btn bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Yearly</button>
+    <button onclick="showChart('pie')"
+      class="chart-btn bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">By Source</button>
+  </div>
+
+  <!-- 📊 Chart Containers -->
+  <div id="dailyChartContainer">
+    <canvas id="dailyChart"></canvas>
+    <div id="dailyChartNoData" class="text-center text-gray-500 mt-4" style="display:none;">No data for daily chart.</div>
+  </div>
+  <div id="monthlyChartContainer" class="hidden">
+    <canvas id="monthlyChart"></canvas>
+    <div id="monthlyChartNoData" class="text-center text-gray-500 mt-4" style="display:none;">No data for monthly chart.</div>
+  </div>
+  <div id="yearlyChartContainer" class="hidden">
+    <canvas id="yearlyChart"></canvas>
+    <div id="yearlyChartNoData" class="text-center text-gray-500 mt-4" style="display:none;">No data for yearly chart.</div>
+  </div>
+  <div id="pieChartContainer" class="hidden">
+    <canvas id="pieChart"></canvas>
+    <div id="pieChartNoData" class="text-center text-gray-500 mt-4" style="display:none;">No data for pie chart.</div>
+  </div>
+</section>
+
+<script>
+var serverData = {{ server_data | tojson | safe }};
+
+// Global variables
+let charts = {};
+let notifications = serverData.notifications || [];
+
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', function () {
+  // Initialize charts
+  Object.entries(serverData.chartData).forEach(([key, config]) => {
+    createChart(
+      key + 'Chart',
+      config.type,
+      config.labels,
+      config.data,
+      key.charAt(0).toUpperCase() + key.slice(1) + ' Expenses',
+      config.color
+    );
+  });
+
+  // Show daily chart by default
+  showChart('daily');
+
+  // Initialize budget progress
+  updateBudgetProgress(
+    serverData.totalExpenses,
+    serverData.currentBudget,
+    serverData.currentLimit
+  );
+
+  // Initialize notifications
+  renderNotifications();
+});
+
+function showChart(type) {
+  ['daily', 'monthly', 'yearly', 'pie'].forEach(t => {
+    const container = document.getElementById(`${t}ChartContainer`);
+    if (container) {
+      if (t === type) {
+        container.classList.remove('hidden');
+        // Ensure chart is properly sized after becoming visible
+        setTimeout(() => {
+          if (charts[`${t}Chart`]) {
+            charts[`${t}Chart`].resize();
+            charts[`${t}Chart`].update('active');
+          }
+        }, 50);
+      } else {
+        container.classList.add('hidden');
+      }
+    }
+  });
+}
+function createChart(id, type, labels, data, label, color) {
+  const ctx = document.getElementById(id);
+  const noDataDiv = document.getElementById(id + 'NoData');
+  if (!ctx || !labels || !data || labels.length === 0 || data.length === 0) {
+    if (noDataDiv) noDataDiv.style.display = '';
+    return;
+  } else {
+    if (noDataDiv) noDataDiv.style.display = 'none';
+  }
+  // Destroy existing chart if it exists
+  if (charts[id]) {
+    charts[id].destroy();
+    delete charts[id];
+  }
+  const isLineChart = type === 'line';
+  const formattedData = data.map(val => typeof val === 'string' ? Number(val.replace(/[^0-9.-]+/g, '')) : val);
+  charts[id] = new Chart(ctx, {
+    type: type,
+    data: {
+      labels: labels,
+      datasets: [{
+        label: label,
+        data: formattedData,
+        backgroundColor: type === 'doughnut'
+          ? ['#60a5fa', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#ec4899', '#8b5cf6', '#14b8a6']
+          : isLineChart ? 'rgba(59, 130, 246, 0.1)' : color,
+        borderColor: isLineChart ? color : undefined,
+        borderWidth: isLineChart ? 2 : 1,
+        fill: isLineChart ? 'origin' : false,
+        tension: isLineChart ? 0.4 : 0,
+        pointRadius: isLineChart ? 4 : 0,
+        pointHoverRadius: isLineChart ? 8 : 0,
+        pointBackgroundColor: isLineChart ? '#ffffff' : undefined,
+        pointBorderColor: isLineChart ? color : undefined,
+        pointBorderWidth: isLineChart ? 2 : 0,
+        pointStyle: isLineChart ? 'circle' : undefined,
+        cubicInterpolationMode: isLineChart ? 'monotone' : undefined,
+        stepped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2,
+      layout: {
+        padding: {
+          top: 10,
+          right: 20,
+          bottom: 10,
+          left: 20
+        }
+      },
+      interaction: {
+        mode: isLineChart ? 'index' : 'nearest',
+        intersect: false,
+        axis: 'x'
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'center',
+          labels: {
+            padding: 20,
+            font: {
+              size: 13,
+              weight: 'bold'
+            },
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
+        tooltip: {
+          enabled: true,
+          mode: isLineChart ? 'index' : 'nearest',
+          intersect: false,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          titleColor: '#fff',
+          bodyColor: '#fff',
+          padding: 12,
+          titleFont: {
+            size: 14,
+            weight: 'bold'
+          },
+          bodyFont: {
+            size: 13
+          },
+          displayColors: false,
+          callbacks: {
+            label: function (context) {
+              const value = context.raw;
+              return `${context.dataset.label}: ₹${value.toLocaleString()}`;
+            }
+          }
+        }
+      },
+      scales: type !== 'doughnut' ? {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(160, 160, 160, 0.1)',
+            drawBorder: false,
+            lineWidth: 1
+          },
+          ticks: {
+            callback: val => `₹${val.toLocaleString()}`,
+            font: {
+              size: 12
+            },
+            padding: 8,
+            maxTicksLimit: 8
+          }
+        },
+        x: {
+          grid: {
+            display: isLineChart,
+            drawBorder: false,
+            color: 'rgba(160, 160, 160, 0.1)',
+            lineWidth: 1
+          },
+          ticks: {
+            font: {
+              size: 12
+            },
+            padding: 8,
+            maxRotation: 0
+          }
+        }
+      } : {}
+    }
+  });
+  // Add resize handler for the chart
+  window.addEventListener('resize', function () {
+    if (charts[id]) {
+      charts[id].resize();
+    }
+  });
+}
+
+function updateBudgetProgress(total, budget, limit) {
+  const progress = document.getElementById('budgetProgress');
+  const budgetStatus = document.getElementById('budgetStatus');
+
+  if (budget > 0) {
+    const percent = (total / budget) * 100;
+
+    // Update progress bar width and color
+    progress.style.width = Math.min(100, percent) + '%';
+    if (percent <= 70) {
+      progress.className = 'bg-green-500 h-4 rounded-full transition-all duration-300';
+      budgetStatus.className = 'font-semibold text-green-500';
+    } else if (percent <= 90) {
+      progress.className = 'bg-yellow-500 h-4 rounded-full transition-all duration-300';
+      budgetStatus.className = 'font-semibold text-yellow-500';
+    } else {
+      progress.className = 'bg-red-600 h-4 rounded-full transition-all duration-300';
+      budgetStatus.className = 'font-semibold text-red-500';
+    }
+
+    // Update status text
+    budgetStatus.textContent = `${percent.toFixed(1)}% of budget used`;
+
+    // Add notifications
+    if (percent > 100) {
+      notifications.push(`🚨 Budget exceeded by ₹${(total - budget).toFixed(0)}!`);
+    }
+
+    if (limit > 0) {
+      if (total >= limit) {
+        notifications.push("🚨 Final Alert: You've crossed your spending limit!");
+      } else if (total >= limit - 1000) {
+        notifications.push("⚠️ Warning: You're ₹1000 away from your spending limit!");
+      } else if (total >= limit - 2000) {
+        notifications.push("⚠️ Notice: You're ₹2000 away from your spending limit!");
+      }
+    }
+  } else {
+    progress.style.width = '0%';
+    progress.className = 'bg-gray-300 h-4 rounded-full';
+    budgetStatus.textContent = 'Set your monthly budget to start tracking';
+    budgetStatus.className = 'font-semibold text-gray-500';
+  }
+
+  renderNotifications();
+}
+</script>
+{% endblock %}

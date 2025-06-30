@@ -1,0 +1,21 @@
+Flask==3.0.3                # Web framework
+Flask-Cors==4.0.0           # Enable cross-origin requests (if needed for JS/AJAX)
+
+SpeechRecognition==3.10.1   # Voice input
+PyAudio==0.2.14             # Microphone support (required for SpeechRecognition)
+pyttsx3==2.90                # Text-to-speech for AI responses
+
+opencv-python==4.9.0.80     # Image processing (for receipt scanner)
+pytesseract==0.3.10         # OCR tool to extract text from images
+Pillow==10.3.0              # Image handling in Python (used with OpenCV sometimes)
+
+numpy==1.26.4               # Numeric operations
+pandas==2.2.2               # Data manipulation
+scikit-learn==1.4.2         # ML model training / prediction
+joblib==1.4.2               # Saving/loading ML models
+
+matplotlib==3.9.0           # For visual charts on dashboard
+plotly==5.22.0              # Optional: Interactive charts (optional alternative to matplotlib)
+python-dotenv==1.0.1        # To manage secret keys/config (optional)
+twilio==8.12.0              # For SMS OTP functionality
+pdfkit==1.0.0               # For generating PDF reports

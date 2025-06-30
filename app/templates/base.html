@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>💰 FinGuard - Smart Expense Tracker</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- AOS Animate On Scroll -->
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/png">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <!-- Tailwind Theme Customization -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#4f46e5',
+            secondary: '#a78bfa',
+            accent: '#22c55e',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Set theme early to avoid flicker -->
+  <script>
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-100 to-white dark:from-gray-900 dark:to-gray-800 text-gray-800 dark:text-gray-100 font-sans transition-all duration-300">
+
+  <!-- 🌐 Navbar -->
+  <nav class="backdrop-blur-md bg-white/70 dark:bg-gray-900/80 shadow-md p-4 sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700">
+    <div class="container mx-auto flex justify-between items-center px-4">
+      <div id="notifBell" class="hidden absolute right-4 top-16 w-72 max-h-96 overflow-y-auto bg-white dark:bg-gray-800 shadow-lg rounded-lg z-50 p-4 text-sm text-gray-800 dark:text-gray-200"></div>
+      <h1 class="text-xl font-bold text-primary">FinGuard 💼</h1>
+      <ul class="flex items-center gap-6 font-medium text-primary dark:text-secondary text-sm md:text-base">
+        <li><a href="{{ url_for('main.dashboard') }}" class="hover:underline hover:text-accent transition">Dashboard</a></li>
+        <li><a href="{{ url_for('main.upload') }}" class="hover:underline hover:text-accent transition">Upload Bill</a></li>
+        <li><a href="{{ url_for('main.voice_input') }}" class="hover:underline hover:text-accent transition">Voice Input</a></li>
+        <li class="flex gap-2 items-center relative">
+          <div class="relative inline-block text-left">
+            <!-- Notification Bell -->
+            <button id="notifBtn" class="relative text-xl p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600" title="Notifications">
+              🔔
+              <span id="notifCount" class="absolute -top-1 -right-1 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full hidden">0</span>
+            </button>
+            <!-- Notification Dropdown -->
+            <div id="notifDropdown" class="absolute right-0 top-12 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-lg rounded-md hidden z-50">
+              <div id="notifList" class="max-h-64 overflow-y-auto text-sm text-gray-800 dark:text-white p-2"></div>
+            </div>
+          </div>
+          <!-- Theme Toggle -->
+          <button id="toggleTheme" class="p-2 rounded-full bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 transition text-xl" title="Toggle Theme">☀️</button>
+          <!-- Logout Button -->
+          <form action="{{ url_for('auth.logout') }}" method="POST" id="logoutForm">
+            <button type="submit" class="ml-2 px-3 py-1 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition" onclick="return confirmLogout()">
+              Logout
+            </button>
+          </form>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ✅ Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container mx-auto mt-4 px-4">
+        {% for category, message in messages %}
+          <div class="mb-4 px-4 py-3 rounded text-white bg-{{ 'red' if category == 'error' else 'green' }}-600">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- 📄 Page Content -->
+  <main class="container mx-auto px-4 py-10" data-aos="fade-up">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- 🎤 Floating Action Button for Voice -->
+  <a href="{{ url_for('main.voice_input') }}"
+     class="fixed bottom-6 right-6 z-50 text-white text-3xl rounded-full p-4 bg-indigo-600 hover:bg-indigo-700 shadow-xl animate-bounce hover:scale-110 transition duration-300"
+     title="Quick Voice Input">
+    <span class="relative">
+      🎤
+      <span class="absolute inset-0 rounded-full bg-indigo-400 opacity-30 blur-xl animate-ping z-[-1]"></span>
+    </span>
+  </a>
+
+  <!-- 📜 Footer -->
+  <footer class="text-center text-sm text-gray-500 py-6">
+    © {{ current_year if current_year else 2025 }} FinGuard. All rights reserved.
+  </footer>
+
+  <!-- AOS -->
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <script>AOS.init({ once: true, duration: 800 });</script>
+
+  <!-- 🌗 Theme Toggle Logic -->
+  <script>
+    const toggleBtn = document.getElementById('toggleTheme');
+
+    function updateIcon() {
+      const isDark = document.documentElement.classList.contains('dark');
+      toggleBtn.innerHTML = isDark ? '🌙' : '☀️';
+      toggleBtn.classList.add('animate-spin-slow');
+      setTimeout(() => toggleBtn.classList.remove('animate-spin-slow'), 1000);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme');
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+      updateIcon();
+    });
+
+    toggleBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateIcon();
+    });
+  </script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Notification Dropdown Logic -->
+  <script>
+    // Initialize notifications from server
+    
+    
+    document.addEventListener("DOMContentLoaded", function () {
+      const notifBtn = document.getElementById("notifBtn");
+      const notifDropdown = document.getElementById("notifDropdown");
+      const notifList = document.getElementById("notifList");
+      const notifCount = document.getElementById("notifCount");
+
+      if (notifBtn && notifDropdown && notifList) {
+        // Show notification count if there are notifications
+        if (serverNotifications && serverNotifications.length > 0) {
+          notifCount.textContent = serverNotifications.length;
+          notifCount.classList.remove("hidden");
+          renderNotifications();
+        }
+
+        // Toggle dropdown on bell click
+        notifBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          notifDropdown.classList.toggle("hidden");
+        });
+
+        // Close dropdown on outside click
+        document.addEventListener("click", function () {
+          notifDropdown.classList.add("hidden");
+        });
+
+        // Prevent dropdown from closing when clicking inside
+        notifDropdown.addEventListener("click", function (e) {
+          e.stopPropagation();
+        });
+      }
+
+      function renderNotifications() {
+        if (!notifList) return;
+        
+        notifList.innerHTML = "";
+        if (!serverNotifications || serverNotifications.length === 0) {
+          notifList.innerHTML = '<div class="p-2 text-center text-gray-500">No new notifications</div>';
+        } else {
+          serverNotifications.forEach(msg => {
+            const div = document.createElement("div");
+            div.className = "p-2 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700";
+            div.innerHTML = msg;
+            notifList.appendChild(div);
+          });
+        }
+      }
+    });
+  </script>
+
+  <!-- Download Dropdown Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const downloadBtn = document.getElementById('downloadBtn');
+      const dropdown = document.getElementById('downloadDropdown');
+
+      downloadBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('hidden');
+      });
+
+      document.addEventListener('click', () => {
+        dropdown?.classList.add('hidden');
+      });
+    });
+  </script>
+
+</body>
+</html>

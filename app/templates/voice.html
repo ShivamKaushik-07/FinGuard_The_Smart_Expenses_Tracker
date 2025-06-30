@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-100 to-indigo-200 p-6">
+  <div class="bg-white rounded-3xl shadow-xl p-10 max-w-xl w-full text-center transform transition hover:scale-[1.01] duration-300">
+    
+    <h2 class="text-4xl font-extrabold mb-4 text-indigo-700 animate-bounce">🎤 Voice Input</h2>
+    <p class="text-gray-600 mb-6">Click the mic below and start speaking your expense.</p>
+
+    <form method="POST">
+      <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full text-xl shadow-lg transition duration-300 focus:outline-none focus:ring-4 focus:ring-indigo-300">
+        🎙️ Start Listening
+      </button>
+    </form>
+    <div class="mt-10">
+      {% if result %}
+        <div class="bg-green-50 text-green-800 p-4 rounded-lg shadow mt-4">{{ result }}</div>
+      {% endif %}
+      {% if notifications %}
+        <ul class="mt-4">
+          {% for note in notifications %}
+            <li class="bg-yellow-50 text-yellow-800 p-2 rounded mb-2">{{ note }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+

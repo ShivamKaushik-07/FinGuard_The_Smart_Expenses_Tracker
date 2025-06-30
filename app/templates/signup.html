@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="signup-container">
+    <h2>Create Your FinGuard Account</h2>
+
+    <!-- ✅ Flash message block -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-messages">
+          {% for category, message in messages %}
+            <li class="flash {{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <!-- ✅ Signup form -->
+    <form method="POST" action="{{ url_for('auth.signup') }}">
+        <input type="text" name="name" placeholder="Full Name" required>
+        <input type="email" name="email" placeholder="Email Address" required>
+        <input type="text" name="phone" placeholder="Phone Number" required>
+        <input type="password" name="password" placeholder="Create Password" required>
+        <button type="submit">Sign Up</button>
+    </form>
+
+    <div class="login-link">
+        <p>
+            Already have an account?
+            <a href="{{ url_for('main.home') }}?login=1">Log in here</a>
+        </p>
+    </div>
+</div>
+
+{% endblock %}
+
