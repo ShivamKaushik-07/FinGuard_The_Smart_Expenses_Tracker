@@ -19,6 +19,7 @@ import logging
 import sys
 import os.path
 from app.bill_scanner import extract_amount
+from app.backup import export_expenses_to_csv_pdf
 
 main = Blueprint('main', __name__)
 
@@ -551,21 +552,57 @@ def download_backup(file_type, month_type):
 
 @main.route('/generate_backup', methods=['GET', 'POST'])
 def generate_backup():
-    # --- Manual login check: adjust 'user_id' to your session key ---
     if 'user_id' not in session:
-        # If AJAX/fetch request, return JSON error
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'status': 'error', 'message': 'Not logged in'}), 401
-        # Otherwise, redirect to login page (for normal browser navigation)
         return redirect(url_for('login'))
 
     try:
-        # --- Your backup logic here ---
-        # For example, generate the backup file, etc.
-        # If successful:
-        return jsonify({'status': 'success'})
+        # Get parameters from request (default to current month, csv)
+        monthType = request.args.get('monthType', 'current')  # 'current' or 'last'
+        fileType = request.args.get('fileType', 'csv')        # 'csv' or 'pdf'
+
+        use_last_month = (monthType == 'last')
+
+        # Get the user (if using Flask-Login, use current_user)
+        user = current_user
+
+        # Generate backup
+        csv_path, pdf_path = export_expenses_to_csv_pdf(user, use_last_month)
+
+        if not csv_path and not pdf_path:
+            return jsonify({'status': 'error', 'message': 'No expenses found for this period.'}), 404
+
+        # Return the path to the generated file (for download)
+        if fileType == 'csv':
+            file_path = csv_path
+        else:
+            file_path = pdf_path
+
+        return jsonify({'status': 'success', 'fileType': fileType, 'monthType': monthType, 'filePath': file_path})
+
     except Exception as e:
-        # If there is an error, return JSON error
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+
+@main.route('/reset_current_expenses', methods=['POST'])
+@login_required
+def reset_current_expenses():
+    from datetime import datetime
+    now = datetime.now()
+    current_month = now.month
+    current_year = now.year
+
+    try:
+        # Delete only current user's expenses for the current month
+        Expense.query.filter(
+            Expense.user_id == current_user.id,
+            db.extract('month', Expense.date) == current_month,
+            db.extract('year', Expense.date) == current_year
+        ).delete()
+        db.session.commit()
+        return jsonify({'status': 'success', 'message': 'Current month expenses reset.'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
