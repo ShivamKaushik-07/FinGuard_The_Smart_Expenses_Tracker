@@ -1,5 +1,9 @@
 Flask==3.0.3                # Web framework
 Flask-Cors==4.0.0           # Enable cross-origin requests (if needed for JS/AJAX)
+Flask-SQLAlchemy==3.1.1     # ORM for database operations
+Flask-Login==0.6.3          # User authentication
+Flask-Migrate==4.0.5        # Database migrations
+Werkzeug==3.0.2             # WSGI utilities (used by Flask)
 
 SpeechRecognition==3.10.1   # Voice input
 PyAudio==0.2.14             # Microphone support (required for SpeechRecognition)
@@ -15,6 +19,7 @@ joblib==1.4.2               # Saving/loading ML models
 
 matplotlib==3.9.0           # For visual charts on dashboard
 plotly==5.22.0              # Optional: Interactive charts (optional alternative to matplotlib)
-python-dotenv==1.0.1        # To manage secret keys/config (optional)
+python-dotenv==1.0.1        # To manage secret keys/config
 twilio==8.12.0              # For SMS OTP functionality
 pdfkit==1.0.0               # For generating PDF reports
+gunicorn==21.2.0            # WSGI HTTP Server for deployment (used in Procfile)
