@@ -35,6 +35,8 @@ if os.path.exists(TESSERACT_CMD):
 else:
     logger.error(f"Tesseract not found at: {TESSERACT_CMD}")
 
+pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+
 @main.route('/')
 def index():
     notifications = []  # Initialize empty notifications
