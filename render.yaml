@@ -3,7 +3,7 @@ services:
     name: finguard
     env: python
     buildCommand: |
-      apt-get update && apt-get install -y tesseract-ocr
+      apt-get update && apt-get install -y tesseract-ocr tesseract-ocr-hin tesseract-ocr-mar tesseract-ocr-beng
       pip install -r requirements.txt
     startCommand: gunicorn run:app
     pythonVersion: 3.11.9
