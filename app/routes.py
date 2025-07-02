@@ -82,6 +82,7 @@ def dashboard():
         all_expenses = Expense.query.filter_by(user_id=current_user.id).order_by(Expense.id.desc()).all()
 
         # Initialize empty defaults
+        current_month_expenses = []
         daily_labels = []
         daily_data = []
         monthly_labels = []
