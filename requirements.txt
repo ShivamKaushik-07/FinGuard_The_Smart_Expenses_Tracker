@@ -1,25 +1,30 @@
-Flask==3.0.3                # Web framework
-Flask-Cors==4.0.0           # Enable cross-origin requests (if needed for JS/AJAX)
-Flask-SQLAlchemy==3.1.1     # ORM for database operations
-Flask-Login==0.6.3          # User authentication
-Flask-Migrate==4.0.5        # Database migrations
-Werkzeug==3.0.2             # WSGI utilities (used by Flask)
+Flask==3.0.3
+Flask-Cors==4.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-Migrate==4.0.5
+Werkzeug==3.0.2
 
-SpeechRecognition==3.10.1   # Voice input
-PyAudio==0.2.14             # Microphone support (required for SpeechRecognition)
+SpeechRecognition==3.10.1
 
-opencv-python==4.9.0.80     # Image processing (for receipt scanner)
-pytesseract==0.3.10         # OCR tool to extract text from images
-Pillow==10.3.0              # Image handling in Python (used with OpenCV sometimes)
+# PyAudio can fail on cloud builds. Use precompiled wheel or skip for now
+# PyAudio is only used locally for mic input, not needed in production
+# Comment it out or replace with note
+# PyAudio==0.2.14
 
-numpy==1.26.4               # Numeric operations
-pandas==2.2.2               # Data manipulation
-scikit-learn==1.4.2         # ML model training / prediction
-joblib==1.4.2               # Saving/loading ML models
+opencv-python==4.9.0.80
+pytesseract==0.3.10
+Pillow==10.3.0
 
-matplotlib==3.9.0           # For visual charts on dashboard
-plotly==5.22.0              # Optional: Interactive charts (optional alternative to matplotlib)
-python-dotenv==1.0.1        # To manage secret keys/config
-twilio==8.12.0              # For SMS OTP functionality
-pdfkit==1.0.0               # For generating PDF reports
-gunicorn==21.2.0            # WSGI HTTP Server for deployment (used in Procfile)
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.4.2
+joblib==1.4.2
+
+matplotlib==3.9.0
+plotly==5.22.0
+
+python-dotenv==1.0.1
+twilio==8.12.0
+pdfkit==1.0.0
+gunicorn==21.2.0
