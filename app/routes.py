@@ -162,7 +162,7 @@ def dashboard():
                 notifications.append(f"ℹ️ Notice: ₹{remaining:,.2f} until spending limit")
 
         return render_template('dashboard.html',
-                               expenses=all_expenses,
+                               expenses=current_month_expenses,
                                daily_labels=daily_labels,
                                daily_data=daily_data,
                                monthly_labels=monthly_labels,
@@ -260,7 +260,7 @@ def upload():
     try:
         test_image_path = os.path.join(current_app.root_path, 'static', 'image', 'sample_bill.jpg')
         if os.path.exists(test_image_path):
-            test_text = pytesseract.image_to_string(Image.open(test_image_path))
+            test_text = pytesseract.image_to_string(Image.open(test_image_path), lang='eng+hin+tam+tel+ben+kan+mal+mar+guj+pan+ori+asm+urd')
             logger.debug("Tesseract test successful")
         else:
             logger.warning(f"Test image not found at: {test_image_path}")
@@ -326,7 +326,7 @@ def upload():
                 try:
                     logger.debug(f"Starting OCR processing for: {filename}")
                     image = Image.open(upload_path)
-                    extracted_text = pytesseract.image_to_string(image)
+                    extracted_text = pytesseract.image_to_string(image, lang='eng+hin+tam+tel+ben+kan+mal+mar+guj+pan+ori+asm+urd')
                     logger.debug(f"OCR completed. Extracted text length: {len(extracted_text)}")
                     
                     if not extracted_text.strip():
@@ -460,8 +460,8 @@ def upload():
 @login_required
 def voice_input():
     result = None
-    notifications = []  # Initialize empty notifications
-    
+    notifications = []
+
     # Get latest budget info for notifications
     latest_budget = Budget.query.filter_by(user_id=current_user.id).order_by(Budget.id.desc()).first()
     if latest_budget:
@@ -492,33 +492,30 @@ def voice_input():
     
     if request.method == 'POST':
         try:
-            # Check if form data is provided (from JavaScript)
-            form_description = request.form.get('description')
-            form_amount = request.form.get('amount')
-            
-            if form_description and form_amount:
-                # Use the form data
-                description = form_description
-                amount = float(form_amount)
+            # Get the recognized text from the form
+            voice_text = request.form.get('voice_text')
+            if voice_text:
+                # Try to extract amount and description from the voice_text
+                import re
+                amount_match = re.search(r'(\d+(\.\d{1,2})?)', voice_text.replace(',', ''))
+                amount = float(amount_match.group(1)) if amount_match else 0
+                description = re.sub(r'(\d+(\.\d{1,2})?)', '', voice_text).strip() if amount_match else voice_text
+
+                if amount > 0 and description:
+                    new_expense = Expense(
+                        description=description,
+                        amount=amount,
+                        date=datetime.utcnow(),
+                        source='voice',
+                        user_id=current_user.id
+                    )
+                    db.session.add(new_expense)
+                    db.session.commit()
+                    result = f"✅ Saved: {description} - ₹{amount}"
+                else:
+                    result = "❌ Could not extract amount and description. Please say something like 'I spent Rs 100 on groceries'."
             else:
-                # Use the voice input capture
-                description, amount = capture_voice_input()
-
-            if amount > 0 and description and description not in ["Could not understand", "API error"]:
-                new_expense = Expense(
-                    description=description,
-                    amount=amount,
-                    date=datetime.utcnow(),
-                    source='voice',
-                    user_id=current_user.id  # Add user_id to expense
-                )
-                db.session.add(new_expense)
-                db.session.commit()
-
-                result = f"✅ Saved: {description} - ₹{amount}"
-            else:
-                result = "❌ Could not extract amount and description. Please say something like 'I spent Rs 100 on groceries'."
-
+                result = "❌ No voice input received. Please try again."
         except Exception as e:
             print("Error:", e)
             result = "❌ Error occurred while saving. Please try again."

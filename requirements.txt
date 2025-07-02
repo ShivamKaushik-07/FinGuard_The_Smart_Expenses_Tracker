@@ -3,7 +3,6 @@ Flask-Cors==4.0.0           # Enable cross-origin requests (if needed for JS/AJA
 
 SpeechRecognition==3.10.1   # Voice input
 PyAudio==0.2.14             # Microphone support (required for SpeechRecognition)
-pyttsx3==2.90                # Text-to-speech for AI responses
 
 opencv-python==4.9.0.80     # Image processing (for receipt scanner)
 pytesseract==0.3.10         # OCR tool to extract text from images

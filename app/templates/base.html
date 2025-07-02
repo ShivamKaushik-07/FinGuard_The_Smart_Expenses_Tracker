@@ -51,13 +51,13 @@
       <div id="notifBell" class="hidden absolute right-4 top-16 w-72 max-h-96 overflow-y-auto bg-white dark:bg-gray-800 shadow-lg rounded-lg z-50 p-4 text-sm text-gray-800 dark:text-gray-200"></div>
       <h1 class="text-xl font-bold text-primary">FinGuard 💼</h1>
       <ul class="flex items-center gap-6 font-medium text-primary dark:text-secondary text-sm md:text-base">
-        <li><a href="{{ url_for('main.dashboard') }}" class="hover:underline hover:text-accent transition">Dashboard</a></li>
         <li><a href="{{ url_for('main.upload') }}" class="hover:underline hover:text-accent transition">Upload Bill</a></li>
         <li><a href="{{ url_for('main.voice_input') }}" class="hover:underline hover:text-accent transition">Voice Input</a></li>
+        <li><a href="{{ url_for('main.dashboard') }}" class="hover:underline hover:text-accent transition">Dashboard</a></li>
         <li class="flex gap-2 items-center relative">
           <div class="relative inline-block text-left">
             <!-- Notification Bell -->
-            <button id="notifBtn" class="relative text-xl p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600" title="Notifications">
+            <button id="notifBtn" class="relative text-xl p-2 rounded-full bg-gray-0 dark:bg-gray-0 hover:bg-gray-0 dark:hover:bg-gray-600" title="Notifications">
               🔔
               <span id="notifCount" class="absolute -top-1 -right-1 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full hidden">0</span>
             </button>
@@ -67,7 +67,7 @@
             </div>
           </div>
           <!-- Theme Toggle -->
-          <button id="toggleTheme" class="p-2 rounded-full bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 transition text-xl" title="Toggle Theme">☀️</button>
+          <button id="toggleTheme" class="p-2 rounded-full bg-gray-0 dark:bg-gray-0 hover:bg-gray-0 dark:hover:bg-gray-600 transition text-xl" title="Toggle Theme">☀️</button>
           <!-- Logout Button -->
           <form action="{{ url_for('auth.logout') }}" method="POST" id="logoutForm">
             <button type="submit" class="ml-2 px-3 py-1 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition" onclick="return confirmLogout()">
@@ -144,75 +144,54 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Notification Dropdown Logic -->
-  <script>
-    // Initialize notifications from server
-    
-    
-    document.addEventListener("DOMContentLoaded", function () {
+
+  <!-- Download Dropdown Logic -->
+
+
+      // Notification Bell Dropdown Logic
+      <script>
       const notifBtn = document.getElementById("notifBtn");
       const notifDropdown = document.getElementById("notifDropdown");
       const notifList = document.getElementById("notifList");
       const notifCount = document.getElementById("notifCount");
 
-      if (notifBtn && notifDropdown && notifList) {
-        // Show notification count if there are notifications
-        if (serverNotifications && serverNotifications.length > 0) {
-          notifCount.textContent = serverNotifications.length;
-          notifCount.classList.remove("hidden");
-          renderNotifications();
-        }
-
-        // Toggle dropdown on bell click
-        notifBtn.addEventListener("click", function (e) {
-          e.stopPropagation();
-          notifDropdown.classList.toggle("hidden");
-        });
-
-        // Close dropdown on outside click
-        document.addEventListener("click", function () {
-          notifDropdown.classList.add("hidden");
-        });
-
-        // Prevent dropdown from closing when clicking inside
-        notifDropdown.addEventListener("click", function (e) {
-          e.stopPropagation();
-        });
-      }
-
-      function renderNotifications() {
-        if (!notifList) return;
-        
+      // Render notifications in dropdown
+      function renderBellNotifications() {
         notifList.innerHTML = "";
-        if (!serverNotifications || serverNotifications.length === 0) {
-          notifList.innerHTML = '<div class="p-2 text-center text-gray-500">No new notifications</div>';
-        } else {
-          serverNotifications.forEach(msg => {
+        if (notifications && notifications.length > 0) {
+          notifCount.textContent = notifications.length;
+          notifCount.classList.remove("hidden");
+          notifications.forEach(msg => {
             const div = document.createElement("div");
-            div.className = "p-2 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700";
+            div.className = "p-2 border-b border-gray-200 last:border-0 hover:bg-gray-100";
             div.innerHTML = msg;
             notifList.appendChild(div);
           });
+        } else {
+          notifCount.classList.add("hidden");
+          notifList.innerHTML = '<div class="p-2 text-center text-gray-500">No new notifications</div>';
         }
       }
-    });
-  </script>
 
-  <!-- Download Dropdown Logic -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const downloadBtn = document.getElementById('downloadBtn');
-      const dropdown = document.getElementById('downloadDropdown');
-
-      downloadBtn?.addEventListener('click', (e) => {
+      notifBtn.addEventListener("click", function (e) {
         e.stopPropagation();
-        dropdown.classList.toggle('hidden');
+        notifDropdown.classList.toggle("hidden");
+        renderBellNotifications();
       });
 
-      document.addEventListener('click', () => {
-        dropdown?.classList.add('hidden');
+      // Close dropdown on outside click
+      document.addEventListener("click", function () {
+        notifDropdown.classList.add("hidden");
       });
-    });
+
+      // Prevent dropdown from closing when clicking inside
+      notifDropdown.addEventListener("click", function (e) {
+        e.stopPropagation();
+      });
+
+      // Initial render
+      renderBellNotifications();
+  
   </script>
 
 </body>
